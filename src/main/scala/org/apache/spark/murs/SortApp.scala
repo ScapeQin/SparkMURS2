@@ -12,18 +12,15 @@ object SortApp {
       .set("spark.murs.yellow", args(4)).set("spark.murs.multiTasks", args(5))
     val sparkContext = new SparkContext(sparkConf)
 
+    val ordering = implicitly[Ordering[Int]]
     val lines = sparkContext.textFile(args(1), args(2).toInt)
     val iter = args(6).toInt
-    val links = lines.map( line => {
+    val links = lines.flatMap( line => {
       val parts = line.split("\\s+")
       parts.map(_.toInt)
-    }).flatMap(parts => {
-      parts.map(value => (value, 1))
-    })
+    }).distinct().map(value => (value, 1))
 
-    val result = links.sortByKey()
-
-    result.saveAsTextFile(args(3))
+    links.sortByKey().saveAsTextFile(args(3))
   }
 
 }
